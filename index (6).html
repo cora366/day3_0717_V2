@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학급 미술 전시회</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wall:#1e1b18;
+    --wall-deep:#151311;
+    --panel:#292420;
+    --panel-edge:#3a332c;
+    --ivory:#f3efe6;
+    --muted:#b7ab98;
+    --brass:#c9a24b;
+    --brass-dim:#8f7638;
+    --danger:#c0665a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--wall);
+    color:var(--ivory);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(255,244,220,0.10), transparent 60%),
+      radial-gradient(ellipse 600px 400px at 85% 20%, rgba(255,244,220,0.04), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .app{position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:0 28px 80px;}
+
+  /* NAV */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:26px 0 20px;
+    border-bottom:1px solid var(--panel-edge);
+  }
+  .brand{
+    font-family:'Fraunces',serif; font-weight:500; font-size:20px; letter-spacing:0.02em; color:var(--ivory);
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-dot{width:7px;height:7px;border-radius:50%;background:var(--brass);}
+  .tabs{display:flex; gap:6px; background:var(--panel); padding:4px; border-radius:10px; border:1px solid var(--panel-edge);}
+  .tab-btn{
+    appearance:none; border:none; background:transparent; color:var(--muted);
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; letter-spacing:0.01em;
+    padding:9px 18px; border-radius:7px; cursor:pointer; transition:all .18s ease;
+  }
+  .tab-btn.active{background:var(--brass); color:#231d15;}
+  .tab-btn:not(.active):hover{color:var(--ivory);}
+
+  /* VIEWS */
+  .view{display:none; animation:fadeIn .35s ease;}
+  .view.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* HOME */
+  .hero{padding:64px 0 8px; text-align:center;}
+  .eyebrow{
+    font-size:11.5px; letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--brass); font-weight:700; margin-bottom:18px;
+  }
+  h1.headline{
+    font-family:'Fraunces',serif; font-weight:500; font-size:44px; line-height:1.2;
+    margin:0 0 14px; color:var(--ivory);
+  }
+  .sub{color:var(--muted); font-size:15px; max-width:440px; margin:0 auto 48px; line-height:1.6;}
+
+  .upload-card{
+    max-width:520px; margin:0 auto; background:var(--panel);
+    border:1px solid var(--panel-edge); border-radius:16px; padding:32px;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .dropzone{
+    border:1.5px dashed var(--panel-edge); border-radius:12px;
+    padding:34px 20px; text-align:center; cursor:pointer;
+    transition:border-color .18s ease, background .18s ease; position:relative;
+  }
+  .dropzone:hover, .dropzone.drag{border-color:var(--brass); background:rgba(201,162,75,0.06);}
+  .dropzone input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+  .dz-icon{margin-bottom:12px; opacity:.85;}
+  .dz-text{font-size:14px; color:var(--ivory); font-weight:600;}
+  .dz-sub{font-size:12.5px; color:var(--muted); margin-top:4px;}
+
+  .preview-wrap{margin-top:16px; display:none;}
+  .preview-wrap.show{display:block;}
+  .preview-img{width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid var(--panel-edge);}
+
+  .field{margin-top:18px;}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:7px; font-weight:600; letter-spacing:0.02em;}
+  .field input[type=text]{
+    width:100%; background:var(--wall-deep); border:1px solid var(--panel-edge); color:var(--ivory);
+    border-radius:8px; padding:11px 13px; font-family:'Inter',sans-serif; font-size:14px; outline:none;
+    transition:border-color .15s ease;
+  }
+  .field input[type=text]:focus{border-color:var(--brass);}
+
+  .submit-btn{
+    width:100%; margin-top:22px; background:var(--brass); color:#231d15; border:none;
+    border-radius:9px; padding:13px; font-size:14.5px; font-weight:700; letter-spacing:0.01em;
+    cursor:pointer; transition:filter .15s ease, transform .1s ease;
+  }
+  .submit-btn:hover{filter:brightness(1.08);}
+  .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{opacity:.5; cursor:not-allowed;}
+
+  .status-msg{font-size:13px; margin-top:12px; text-align:center; min-height:18px;}
+  .status-msg.err{color:var(--danger);}
+  .status-msg.ok{color:#9ec38a;}
+
+  .goto-gallery{
+    text-align:center; margin-top:40px; color:var(--muted); font-size:13.5px;
+  }
+  .goto-gallery button{
+    background:none; border:none; color:var(--brass); font-weight:700; font-size:13.5px;
+    cursor:pointer; text-decoration:underline; text-underline-offset:3px; font-family:'Inter',sans-serif;
+  }
+
+  /* GALLERY */
+  .gallery-head{padding:52px 0 30px; text-align:center;}
+  .gallery-head h2{font-family:'Fraunces',serif; font-weight:500; font-size:34px; margin:0 0 8px;}
+  .gallery-head p{color:var(--muted); font-size:14px; margin:0;}
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:26px;
+    margin-top:10px;
+  }
+  .frame{
+    background:var(--panel); border:1px solid var(--panel-edge); border-radius:4px;
+    padding:14px 14px 0; cursor:pointer; position:relative;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .frame:hover{transform:translateY(-4px); box-shadow:0 24px 40px -18px rgba(0,0,0,0.65);}
+  .frame-inner{
+    border:8px solid var(--wall-deep); border-radius:2px; overflow:hidden;
+    aspect-ratio:4/5; background:#000;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .frame-inner img{width:100%; height:100%; object-fit:cover; display:block;}
+  .plaque{
+    padding:12px 4px 16px; text-align:center; border-top:1px solid var(--panel-edge); margin-top:12px;
+  }
+  .plaque .p-title{font-family:'Fraunces',serif; font-size:14.5px; color:var(--ivory); margin:0 0 3px;}
+  .plaque .p-name{font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--brass); margin:0;}
+  .del-btn{
+    position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%;
+    background:rgba(20,17,14,0.75); border:1px solid var(--panel-edge); color:var(--muted);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0;
+    transition:opacity .15s ease, color .15s ease, border-color .15s ease; font-size:13px;
+  }
+  .frame:hover .del-btn{opacity:1;}
+  .del-btn:hover{color:var(--danger); border-color:var(--danger);}
+
+  .empty{
+    text-align:center; padding:70px 20px; color:var(--muted);
+  }
+  .empty-icon{margin-bottom:16px; opacity:.5;}
+  .empty p{font-size:14px; line-height:1.7;}
+
+  .loading{text-align:center; padding:70px 20px; color:var(--muted); font-size:13.5px;}
+
+  /* MODAL */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,8,7,0.92);
+    z-index:50; align-items:center; justify-content:center; padding:40px 20px;
+    animation:fadeIn .2s ease;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{max-width:800px; width:100%; text-align:center;}
+  .modal-img-wrap{
+    position:relative;
+    background:radial-gradient(ellipse at 50% 30%, rgba(255,247,230,0.14), transparent 65%);
+    border-radius:6px; padding:20px;
+  }
+  .modal-img-wrap img{
+    max-width:100%; max-height:70vh; border:10px solid var(--wall-deep); border-radius:2px;
+    box-shadow:0 40px 80px -20px rgba(0,0,0,0.8);
+  }
+  .modal-plaque{margin-top:22px;}
+  .modal-plaque .p-title{font-family:'Fraunces',serif; font-size:22px; color:var(--ivory); margin:0 0 6px;}
+  .modal-plaque .p-name{font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass); margin:0 0 4px;}
+  .modal-plaque .p-date{font-size:11.5px; color:var(--muted); margin:0;}
+  .modal-close{
+    position:fixed; top:26px; right:32px; width:40px; height:40px; border-radius:50%;
+    background:var(--panel); border:1px solid var(--panel-edge); color:var(--ivory);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px;
+    transition:border-color .15s ease;
+  }
+  .modal-close:hover{border-color:var(--brass); color:var(--brass);}
+
+  @media (max-width:600px){
+    h1.headline{font-size:32px;}
+    .upload-card{padding:24px;}
+    nav{flex-direction:column; gap:14px; align-items:flex-start;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav>
+    <div class="brand"><span class="brand-dot"></span>학급 미술 전시회</div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabHome" onclick="showView('home')">업로드</button>
+      <button class="tab-btn" id="tabGallery" onclick="showView('gallery')">전시관</button>
+    </div>
+  </nav>
+
+  <!-- HOME / UPLOAD VIEW -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <div class="eyebrow">Student Art Exhibition</div>
+      <h1 class="headline">우리 반 작품을<br>벽에 걸어보세요</h1>
+      <p class="sub">작품 사진을 올리면 자동으로 저장되어, 전시관 탭에서 누구나 확대해서 감상할 수 있어요.</p>
+    </div>
+
+    <div class="upload-card">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*">
+        <div class="dz-icon">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        </div>
+        <div class="dz-text">클릭하거나 이미지를 끌어다 놓으세요</div>
+        <div class="dz-sub">JPG, PNG 파일 지원</div>
+      </div>
+
+      <div class="preview-wrap" id="previewWrap">
+        <img class="preview-img" id="previewImg" alt="미리보기">
+      </div>
+
+      <div class="field">
+        <label for="studentName">학생 이름</label>
+        <input type="text" id="studentName" placeholder="예: 김민준" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="artTitle">작품 제목 (선택)</label>
+        <input type="text" id="artTitle" placeholder="예: 봄의 정원" autocomplete="off">
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="uploadArtwork()">전시하기</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <div class="goto-gallery">
+      <span id="countText">전시관에서 작품을 확인해보세요.</span>
+      &nbsp;<button onclick="showView('gallery')">전시관 보기 →</button>
+    </div>
+  </section>
+
+  <!-- GALLERY VIEW -->
+  <section class="view" id="view-gallery">
+    <div class="gallery-head">
+      <h2>전시관</h2>
+      <p id="galleryCount">작품을 불러오는 중...</p>
+    </div>
+    <div id="galleryContent"></div>
+  </section>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal-close" onclick="closeModal()">✕</div>
+  <div class="modal-box">
+    <div class="modal-img-wrap">
+      <img id="modalImg" src="" alt="">
+    </div>
+    <div class="modal-plaque">
+      <p class="p-title" id="modalTitle"></p>
+      <p class="p-name" id="modalName"></p>
+      <p class="p-date" id="modalDate"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedDataUrl = null;
+let galleryLoaded = false;
+
+/* ---------- View switching ---------- */
+function showView(name){
+  document.getElementById('view-home').classList.toggle('active', name==='home');
+  document.getElementById('view-gallery').classList.toggle('active', name==='gallery');
+  document.getElementById('tabHome').classList.toggle('active', name==='home');
+  document.getElementById('tabGallery').classList.toggle('active', name==='gallery');
+  if(name==='gallery') loadGallery();
+}
+
+/* ---------- Upload handling ---------- */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+['dragenter','dragover'].forEach(evt=>{
+  dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.classList.add('drag'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.classList.remove('drag'); });
+});
+dropzone.addEventListener('drop', e=>{
+  const f = e.dataTransfer.files[0];
+  if(f) handleFile(f);
+});
+fileInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(f) handleFile(f);
+});
+
+function handleFile(file){
+  if(!file.type.startsWith('image/')){
+    setStatus('이미지 파일만 업로드할 수 있어요.', true);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    resizeImage(e.target.result, 1400, 0.82, (resized)=>{
+      selectedDataUrl = resized;
+      document.getElementById('previewImg').src = resized;
+      document.getElementById('previewWrap').classList.add('show');
+      setStatus('', false);
+    });
+  };
+  reader.onerror = ()=> setStatus('파일을 읽는 중 문제가 발생했어요.', true);
+  reader.readAsDataURL(file);
+}
+
+function resizeImage(dataUrl, maxDim, quality, cb){
+  const img = new Image();
+  img.onload = ()=>{
+    let w = img.width, h = img.height;
+    if(w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+    else if(h >= w && h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    cb(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.onerror = ()=> cb(dataUrl);
+  img.src = dataUrl;
+}
+
+function setStatus(msg, isErr){
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status-msg' + (msg ? (isErr ? ' err' : ' ok') : '');
+}
+
+async function uploadArtwork(){
+  const name = document.getElementById('studentName').value.trim();
+  const title = document.getElementById('artTitle').value.trim();
+  const btn = document.getElementById('submitBtn');
+
+  if(!name){ setStatus('학생 이름을 입력해주세요.', true); return; }
+  if(!selectedDataUrl){ setStatus('작품 이미지를 선택해주세요.', true); return; }
+
+  btn.disabled = true;
+  setStatus('업로드 중...', false);
+
+  const id = 'artwork:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  const record = {
+    name: name,
+    title: title || '제목 없음',
+    dataUrl: selectedDataUrl,
+    uploadedAt: new Date().toISOString()
+  };
+
+  try{
+    const result = await window.storage.set(id, JSON.stringify(record), true);
+    if(!result){ throw new Error('저장 실패'); }
+    setStatus('전시되었습니다! 전시관에서 확인해보세요 🎨', false);
+    // reset form
+    document.getElementById('studentName').value = '';
+    document.getElementById('artTitle').value = '';
+    document.getElementById('previewWrap').classList.remove('show');
+    fileInput.value = '';
+    selectedDataUrl = null;
+    galleryLoaded = false; // force refresh next time gallery opens
+  }catch(err){
+    console.error(err);
+    setStatus('업로드에 실패했어요. 다시 시도해주세요.', true);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- Gallery ---------- */
+async function loadGallery(){
+  const content = document.getElementById('galleryContent');
+  const countEl = document.getElementById('galleryCount');
+  content.innerHTML = '<div class="loading">작품을 불러오는 중...</div>';
+
+  try{
+    const listResult = await window.storage.list('artwork:', true);
+    const keys = (listResult && listResult.keys) ? listResult.keys : [];
+
+    if(keys.length === 0){
+      countEl.textContent = '아직 전시된 작품이 없어요.';
+      document.getElementById('countText').textContent = '아직 전시된 작품이 없어요.';
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#b7ab98" stroke-width="1.4"><rect x="3" y="4" width="18" height="14" rx="1.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5-5 5-3-3-5 5"/></svg>
+          </div>
+          <p>첫 번째 작품을 업로드해서<br>전시를 시작해보세요.</p>
+        </div>`;
+      return;
+    }
+
+    const records = await Promise.all(keys.map(async k=>{
+      try{
+        const r = await window.storage.get(k, true);
+        if(!r) return null;
+        const data = JSON.parse(r.value);
+        data._key = k;
+        return data;
+      }catch(e){ return null; }
+    }));
+
+    const valid = records.filter(r=>r).sort((a,b)=> new Date(b.uploadedAt) - new Date(a.uploadedAt));
+
+    countEl.textContent = `총 ${valid.length}점의 작품이 전시되어 있어요.`;
+    document.getElementById('countText').textContent = `지금까지 ${valid.length}점의 작품이 전시되었습니다.`;
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    valid.forEach(art=>{
+      const frame = document.createElement('div');
+      frame.className = 'frame';
+      frame.innerHTML = `
+        <div class="del-btn" title="삭제">✕</div>
+        <div class="frame-inner"><img src="${art.dataUrl}" alt="${escapeHtml(art.title)}" loading="lazy"></div>
+        <div class="plaque">
+          <p class="p-title">${escapeHtml(art.title)}</p>
+          <p class="p-name">${escapeHtml(art.name)}</p>
+        </div>`;
+      frame.querySelector('.frame-inner').addEventListener('click', ()=> openModal(art));
+      frame.querySelector('.plaque').addEventListener('click', ()=> openModal(art));
+      frame.querySelector('.del-btn').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        deleteArtwork(art._key);
+      });
+      grid.appendChild(frame);
+    });
+
+    content.innerHTML = '';
+    content.appendChild(grid);
+    galleryLoaded = true;
+  }catch(err){
+    console.error(err);
+    content.innerHTML = '<div class="empty"><p>작품을 불러오는 중 문제가 발생했어요.<br>잠시 후 다시 시도해주세요.</p></div>';
+  }
+}
+
+async function deleteArtwork(key){
+  if(!confirm('이 작품을 전시관에서 삭제할까요?')) return;
+  try{
+    await window.storage.delete(key, true);
+    loadGallery();
+  }catch(err){
+    alert('삭제에 실패했어요. 다시 시도해주세요.');
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ---------- Modal ---------- */
+function openModal(art){
+  document.getElementById('modalImg').src = art.dataUrl;
+  document.getElementById('modalTitle').textContent = art.title;
+  document.getElementById('modalName').textContent = art.name;
+  const d = new Date(art.uploadedAt);
+  document.getElementById('modalDate').textContent = d.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function closeModalOnBg(e){
+  if(e.target.id === 'modalOverlay') closeModal();
+}
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
